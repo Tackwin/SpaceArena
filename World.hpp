@@ -1,10 +1,12 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <random>
 #include "Player.hpp"
 #include "Bullet.hpp" 
 #include "Meteor.hpp"
 #include "PickUp.hpp"
+#include "AnimatedSprite.hpp"
 
 #include <vector>
 
@@ -16,10 +18,15 @@ public:
 public:
 	sf::Sprite back;
 
+	sf::Sound pickUpSound;
+	sf::Sound explosionSound;
+
+	std::vector<sf::Drawable*> drawables;
 	std::vector<Bullet*> bullets;
 	std::vector<Meteor*> meteors;
 	std::vector<PickUp*> pickUps;
-	std::vector<sf::Drawable*> drawables;
+	std::vector<Player*> teamA;
+	std::vector<Player*> teamB;
 	Player* playerLocal;
 	Player* otherPlayer;
 
@@ -35,6 +42,7 @@ public:
 	void update(float dt);
 	void draw(sf::RenderWindow &window);
 
+	void listenConnection();
 	void addExplosion(float x, float y);
 };
 

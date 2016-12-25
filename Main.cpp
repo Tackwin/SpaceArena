@@ -5,7 +5,9 @@
 #include "TimerManager.hpp"
 #include "Player.hpp"
 
-//g++ -std=c++11 Main.cpp AnimatedSprite.cpp PickUp.cpp Meteor.cpp CollisionInfo.cpp AssetsManager.cpp TimerManager.cpp Bullet.cpp World.cpp Player.cpp InputsManager.cpp Utility.cpp -o ./SpaceArena -lsfml-graphics -lsfml-window -lsfml-system -g
+//g++ -std=c++11 Main.cpp AnimatedSprite.cpp PickUp.cpp Meteor.cpp CollisionInfo.cpp AssetsManager.cpp TimerManager.cpp Bullet.cpp World.cpp Player.cpp InputsManager.cpp Utility.cpp -o ./SpaceArena -lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system
+//i586-mingw32msvc-g++ -std=c++11 -I../SFML-MingW32/include -L../SFML-MingW32/lib Main.cpp AnimatedSprite.cpp PickUp.cpp Meteor.cpp CollisionInfo.cpp AssetsManager.cpp TimerManager.cpp Bullet.cpp World.cpp Player.cpp InputsManager.cpp Utility.cpp -o ./SpaceArena.exe -lsfml-graphics -lsfml-window -lsfml-system -O2
+//i586-mingw32msvc-g++ -std=c++11 -I../SFML-MingW32/include -L../SFML-MingW32/lib Main.cpp AnimatedSprite.cpp PickUp.cpp Meteor.cpp CollisionInfo.cpp AssetsManager.cpp TimerManager.cpp Bullet.cpp World.cpp Player.cpp InputsManager.cpp Utility.cpp -o ./SpaceArena.exe -lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system -O2
 
 World *world = nullptr;
 void loadAssets();
@@ -24,7 +26,7 @@ int main() {
 	sf::Clock dtClock;
 	while (window.isOpen()) {
 		float dt = dtClock.restart().asSeconds();
-		dt = dt > 0.034f ? 0.034f : dt;
+		dt = dt > 0.01666f ? 0.01666f : dt;
 		InputsManager::update(window);
 		TimerManager::update(dt);
 		world->update(dt);
@@ -51,6 +53,7 @@ void loadAssets() {
 	AssetsManager::loadTexture("playerTexture", "img/player.png");
 	AssetsManager::loadTexture("repairTexture", "img/repair.png");
 	AssetsManager::loadTexture("laserTexture", "img/laser.png");
+	AssetsManager::loadTexture("starTexture", "img/star.png");
 	AssetsManager::loadTexture("buffTexture", "img/buff.png");
 	AssetsManager::loadTexture("backTexture", "img/back.png");
 	printf("\n");
@@ -61,6 +64,13 @@ void loadAssets() {
 	AssetsManager::loadImage("repairCollision", "img/repairCollision.png");
 	AssetsManager::loadImage("laserCollision", "img/laserCollision.png");
 	AssetsManager::loadImage("buffCollision", "img/buffCollision.png");
+	printf("\n");
+	AssetsManager::loadSound("explosionSound", "snd/explosion.ogg");
+	AssetsManager::loadSound("pickUpSound", "snd/pickUp.ogg");
+	AssetsManager::loadSound("shootSound", "snd/shoot.ogg");
+	AssetsManager::loadSound("hitSound", "snd/hit.ogg");
+	printf("\n");
+	AssetsManager::openMusic("mainMusic", "snd/music.ogg");
 	printf("\n");
 	AssetsManager::loadFont("font", "fnt/font.ttf");
 	printf("\n");

@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "CollisionInfo.hpp"
 
 class World;
@@ -18,6 +19,9 @@ public:
 	
 	sf::Vector2f dir = sf::Vector2f(0, 1);
 	float thrust = 0.f;
+
+	sf::Sound shootSound;
+	sf::Sound hitSound;
 
 	std::string cdShootKey;
 	float cdShoot = 0.5f;

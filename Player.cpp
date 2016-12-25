@@ -14,6 +14,9 @@ Player::Player(bool local, float x, float y, World* world) :
 	local(local),
 	collisionInfo(AssetsManager::getImage("playerCollision")) {
 
+	shootSound.setBuffer(AssetsManager::getSound("shootSound"));
+	hitSound.setBuffer(AssetsManager::getSound("hitSound"));
+
 	shipSprite.setOrigin(25.f, 50.f);
 	shipSprite.setPosition(x, y);
 	
@@ -39,6 +42,10 @@ Player::Player(bool local, float x, float y, World* world) :
 }
 
 Player::~Player() {
+	if(shootSound.getStatus() == sf::SoundSource::Playing)
+		shootSound.stop();
+	if(hitSound.getStatus() == sf::SoundSource::Playing)
+		hitSound.stop();
 }
 
 void Player::handleInput() {
@@ -128,6 +135,10 @@ void Player::draw(sf::RenderTarget &window) {
 }
 
 void Player::shoot() {
+	if(shootSound.getStatus() == sf::SoundSource::Playing)
+		shootSound.stop();
+	shootSound.play();
+
 	auto b = new Bullet(atan2f(dir.y, dir.x), 1500, 1.f, AssetsManager::getTexture("laserTexture"), local);
 	b->sprite.setPosition(shipSprite.getPosition());
 	myWorld->bullets.push_back(b);
@@ -144,6 +155,10 @@ void Player::shoot() {
 }
 
 void Player::getHit() {
+	if(hitSound.getStatus() == sf::SoundSource::Playing)
+		hitSound.stop();
+	hitSound.play();
+
 	structureState++;
 	assert(structureState <= 3 && "GameOver");
 

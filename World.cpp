@@ -2,28 +2,38 @@
 #include "Utility.hpp"
 #include "TimerManager.hpp"
 #include "AssetsManager.hpp"
-#include "AnimatedSprite.hpp"
+#include <string>
 
 World::World() :
 	scoreOtherText("", AssetsManager::getFont("font")),
 	scoreLocalText("", AssetsManager::getFont("font")){
+
+	AssetsManager::getMusic("mainMusic").setLoop(true);
+	AssetsManager::getMusic("mainMusic").setVolume(15);
+	AssetsManager::getMusic("mainMusic").play();
+
+	pickUpSound.setBuffer(AssetsManager::getSound("pickUpSound"));
+	explosionSound.setBuffer(AssetsManager::getSound("explosionSound"));
+
 	std::uniform_real_distribution<float> posRng(-3000, 3000);
+	std::uniform_real_distribution<float> oneRng(0, 1);
 	std::uniform_real_distribution<float> radRng(-3.1415926, 3.1415926);
 	std::uniform_real_distribution<float> vRng(10, 20);
 	std::uniform_real_distribution<float> aRng(10, 20);
-	for(int n = 0; n < 50; n++){
-		meteors.push_back(new Meteor(3, posRng(rng), posRng(rng), radRng(rng), vRng(rng), aRng(rng), this));
+	for(int n = 0; n < 150; n++){
+		meteors.push_back(new Meteor(3, oneRng(rng) * 10000 - 5000,
+									 oneRng(rng) * 10000 - 5000, radRng(rng), vRng(rng), aRng(rng), this));
 	}
-	for(int n = 0; n < 80; n++){
-		pickUps.push_back(new PickUp(posRng(rng), posRng(rng),
-						  std::string("repairTexture"), std::string("repairCollision"), 
+	for(int n = 0; n < 200; n++){
+		pickUps.push_back(new PickUp(oneRng(rng) * 10000 - 5000, oneRng(rng) * 10000 - 5000,
+						  std::string("repairTexture"), std::string("repairCollision"),
 						  std::function<void(Player&)>([](Player& P)->void{
 						  	P.heal();
 						  })));
 	}
-	for(int n = 0; n < 80; n++){
-		pickUps.push_back(new PickUp(posRng(rng), posRng(rng),
-						  std::string("buffTexture"), std::string("buffCollision"), 
+	for(int n = 0; n < 200; n++){
+		pickUps.push_back(new PickUp(oneRng(rng) * 10000 - 5000, oneRng(rng) * 10000 - 5000,
+						  std::string("buffTexture"), std::string("buffCollision"),
 						  std::function<void(Player&)>([](Player& P)->void{
 						  	P.buffed = true;
 						  	TimerManager::addFunctionOnce(2.f, "buffPlayer", [&P](float)->bool{
@@ -32,11 +42,32 @@ World::World() :
 						  	});
 						  })));
 	}
+
+	for(int n = 0; n < 2000; n++){
+		auto *A = new AnimatedSprite(AssetsManager::getTexture("starTexture"), 10, 10, 0.1f, 5);
+		A->setPosition(oneRng(rng) * 10000 - 5000, oneRng(rng) * 10000 - 5000);
+		A->setScale(1.3f, 1.3f);
+		A->pause();
+		TimerManager::addFunctionOnce(oneRng(rng) * 2.f, "starOffset", [A](float)->bool{
+			A->resume();
+			return true;
+		});
+		drawables.push_back(A);	
+	}
 }
 
 World::~World() {
+	AssetsManager::getMusic("mainMusic").stop();
+	if(pickUpSound.getStatus() == sf::SoundSource::Playing)
+		pickUpSound.stop();
+	if(explosionSound.getStatus() == sf::SoundSource::Playing)
+		explosionSound.stop();
+
 	delete playerLocal;
 	delete otherPlayer;
+	for(auto &d : drawables){
+		delete d;
+	}
 	for(auto &b : bullets) {
 		delete b;
 	}
@@ -44,6 +75,11 @@ World::~World() {
 		delete m;
 	}
 	for(auto &p : pickUps) {
+		delete p;
+	}
+	for(auto &p : teamA) {
+		delete p;
+	} for (auto &p : teamB) {
 		delete p;
 	}
 }
@@ -64,10 +100,18 @@ void World::update(float dt) {
 			p->remove = true;
 			p->callBack(*playerLocal);
 			scoreLocal++;
+
+			if(pickUpSound.getStatus() == sf::SoundSource::Playing)
+				pickUpSound.stop();
+			pickUpSound.play();
 		} else if(p->collision.collideWith(otherPlayer->collisionInfo)){
 			p->remove = true;
 			p->callBack(*otherPlayer);
 			scoreOther++;
+
+			if(pickUpSound.getStatus() == sf::SoundSource::Playing)
+				pickUpSound.stop();
+			pickUpSound.play();
 		}
 	}
 	for(auto &b : bullets) {
@@ -154,7 +198,7 @@ void World::update(float dt) {
 
 	scoreLocalText.setString(std::string("Player 1: ") + std::to_string(scoreLocal));
 	scoreOtherText.setString(std::string("Player 2: ") + std::to_string(scoreOther));
-	
+
 	scoreLocalText.setPosition(10, 10);
 	scoreOtherText.setPosition(1270 - scoreOtherText.getGlobalBounds().width, 10);
 }
@@ -198,6 +242,10 @@ void World::draw(sf::RenderWindow &window) {
 
 
 void World::addExplosion(float x, float y){
+	if(explosionSound.getStatus() == sf::SoundSource::Playing)
+		explosionSound.stop();
+	explosionSound.play();
+
 	AnimatedSprite* A = new AnimatedSprite(AssetsManager::getTexture("explosionTexture"), 189, 189, 0.025f, 9);
 	A->setOrigin(A->getTextureRect().width / 2.f, A->getTextureRect().height / 2.f);
 	A->setPosition(x, y);
